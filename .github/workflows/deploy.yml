@@ -1,0 +1,43 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: Deploy App to server
+
+on:
+  workflow_dispatch:
+
+permissions:
+  packages: write
+  actions: read
+  checks: read
+  contents: read
+  deployments: read
+  issues: read
+  pull-requests: read
+  repository-projects: read
+  security-events: read
+  statuses: read
+
+jobs:
+  build:
+    runs-on: self-hosted
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create SSH key
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$PEM_KEY" > $PRIVATE_KEY_PATH
+          sudo chmod 400 $PRIVATE_KEY_PATH
+          echo $PRIVATE_KEY_PATH
+        env:
+          PEM_KEY: ${{ secrets.PEM_KEY }}
+          PRIVATE_KEY_PATH: ${{ vars.PRIVATE_KEY_PATH }}
+      - name: Deploy package
+        run: ansible-playbook scripts/deploy-playbook.yml --private-key $PRIVATE_KEY_PATH -e "USER_NAME=$USERNAME PACKAGE_VERSION=$PACKAGE_VERSION PASSWORD=$GITHUB_TOKEN" -i $NODE, -u ec2-user
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: "aws-cpg-deep"
+          PRIVATE_KEY_PATH: ${{ vars.PRIVATE_KEY_PATH }}
+          NODE: ${{ vars.NODE }}
+          PACKAGE_VERSION: "4.0.0"

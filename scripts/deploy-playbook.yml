@@ -1,0 +1,38 @@
+---
+- name: Deploy Jar
+  hosts: all
+  become: yes
+  vars:
+    PACKAGE_VERSION: 4.0.0
+    USER_NAME: aws-cpg-deep
+  tasks:
+    - name: Download Jar artifact from github
+      get_url:
+        url: "https://maven.pkg.github.com/cpg-ss/spring-petclinic-latest/org/springframework/samples/spring-petclinic-latest/{{ PACKAGE_VERSION }}/spring-petclinic-latest-{{ PACKAGE_VERSION }}.jar"
+        dest: /opt/app/spring-petclinic-latest-{{ PACKAGE_VERSION }}.jar.file
+        group: appmgr
+        owner: jvmapps
+        username: "{{USER_NAME}}"
+        password: "{{PASSWORD}}"
+    - name: Ensure clinic service is stopped
+      service:
+        name: clinic
+        state: stopped
+    - name: Force Remove file (delete file)
+      file:
+        path: /opt/app/clinic.jar
+        state: absent
+    - name: Replace Artifact
+      copy:
+        remote_src: yes
+        force: true
+        backup: true
+        src: /opt/app/spring-petclinic-latest-{{ PACKAGE_VERSION }}.jar.file
+        dest: /opt/app/clinic.jar
+        group: appmgr
+        owner: jvmapps
+        mode: u+rw,g-wx,o-rwx
+    - name: Restart Service
+      service:
+        name: clinic
+        state: started
