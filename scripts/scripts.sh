@@ -1,1 +1,1 @@
-ansible-playbook ./deploy-playbook.yml --private-key $PRIVATE_KEY_PATH -e "USER_NAME=aws-cpg-deep PACKAGE_VERSION=$PACKAGE_VERSION PASSWORD=$GITHUB_TOKEN" -i $NODE, -u ec2-user
+ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ./deploy-playbook.yml --private-key $PRIVATE_KEY_PATH -e "USER_NAME=aws-cpg-deep PACKAGE_VERSION=$PACKAGE_VERSION PASSWORD=$GITHUB_TOKEN" -i $NODE, -u ec2-user
